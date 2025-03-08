@@ -1,38 +1,32 @@
-package com.conduit.middleware;
+package com.conduit.infrastructure.security;
 
-import com.conduit.utils.JwtUtil;
+import com.conduit.common.util.JwtUtil;
+import com.conduit.domain.user.UserEntity;
+import com.conduit.infrastructure.persistence.mapper.UserMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
-//@Component
+@Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
+    private final UserMapper userMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-
-//        String path = request.getRequestURI();
-//        if (path.equals("/users") || path.equals("/users/login")) {
-//            System.out.println("Skipping JWT filter for " + path);
-//            chain.doFilter(request, response);
-//            return;
-//        }
 
         String authHeader = request.getHeader("Authorization");
 
@@ -42,16 +36,28 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        String username = jwtUtil.extractUsername(token);
+        UUID userId = jwtUtil.extractUserId(token);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtil.validateToken(token, username)) {
+
+        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            UserEntity userEntity = userMapper.findByUserId(userId);
+            if(userEntity == null) {chain.doFilter(request, response);return;}
+
+            UserDetails userDetails = userDetailsService.loadUserByUserId(userId);
+            if (jwtUtil.validateToken(token, userId)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication != null && authentication.isAuthenticated()) {
+//            System.out.println("JWT Authentication Success：");
+//        } else {
+//            System.out.println("JWT Authentication Fail");
+//        }
+
 
         chain.doFilter(request, response);
     }

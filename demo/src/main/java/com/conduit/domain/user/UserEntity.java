@@ -1,6 +1,7 @@
-package com.conduit.modules.user;
+package com.conduit.domain.user;
 
 import lombok.*;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -8,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @ToString
 public class UserEntity {
-    private Long id;
+    private UUID id;
     private String username;
     private String email;
     private String password;

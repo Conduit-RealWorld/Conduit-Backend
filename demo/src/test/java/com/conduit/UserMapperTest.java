@@ -1,9 +1,8 @@
 package com.conduit;
 
-import com.conduit.modules.user.UserEntity;
-import com.conduit.modules.user.UserMapper;
+import com.conduit.domain.user.UserEntity;
+import com.conduit.infrastructure.persistence.mapper.UserMapper;
 import org.junit.jupiter.api.Test;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
