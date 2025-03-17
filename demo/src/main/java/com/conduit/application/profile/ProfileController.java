@@ -1,6 +1,6 @@
 package com.conduit.application.profile;
 
-import com.conduit.application.user.data.UserProfileResponseDTO;
+import com.conduit.application.profile.data.UserProfileResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,4 +32,5 @@ public class ProfileController {
         UserProfileResponseDTO response = profileService.unfollowUser(username, user.getUsername());
         return ResponseEntity.ok(response);
     }
+
 }

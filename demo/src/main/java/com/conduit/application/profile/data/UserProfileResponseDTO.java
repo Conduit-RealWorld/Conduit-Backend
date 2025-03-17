@@ -1,4 +1,4 @@
-package com.conduit.application.user.data;
+package com.conduit.application.profile.data;
 
 import com.conduit.domain.user.UserEntity;
 import com.fasterxml.jackson.annotation.JsonRootName;

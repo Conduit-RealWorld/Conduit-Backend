@@ -1,6 +1,6 @@
 package com.conduit.application.profile;
 
-import com.conduit.application.user.data.UserProfileResponseDTO;
+import com.conduit.application.profile.data.UserProfileResponseDTO;
 import com.conduit.common.exception.FollowNotAllowedException;
 import com.conduit.common.exception.UserNotFoundException;
 import com.conduit.domain.user.UserEntity;
@@ -16,6 +16,7 @@ public class ProfileService {
     private final FollowsMapper followsMapper;
 
     public UserProfileResponseDTO getProfile(String username, String currentUser) {
+        if (currentUser == null) {currentUser = username; }
         UserEntity user = userMapper.findByUsername(username);
         if (user == null) throw new UserNotFoundException("User" + username + " not found");
         UserEntity currentUserEntity = userMapper.findByUsername(currentUser);
