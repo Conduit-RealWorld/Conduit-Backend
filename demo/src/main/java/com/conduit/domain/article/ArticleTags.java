@@ -10,6 +10,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ArticleTags {
-    UUID articleId;
-    UUID tagId;
+    private UUID articleId;
+    private UUID tagId;
 }

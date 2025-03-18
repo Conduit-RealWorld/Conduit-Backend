@@ -25,7 +25,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
 
-    public UserEntity createUser(UserRegisterRequestDTO request) {
+    public UserResponseDTO createUser(UserRegisterRequestDTO request) {
         UserEntity user = new UserEntity();
         user.setId(UUID.randomUUID());
         user.setUsername(request.getUsername());
@@ -36,7 +36,7 @@ public class UserService {
         } catch (DuplicateKeyException e) {
             throw new AlreadyExistsException("Email or Username already exists");
         }
-        return user;
+        return new UserResponseDTO(user, null);
     }
 
     public UserResponseDTO loginUser(String email, String password) {

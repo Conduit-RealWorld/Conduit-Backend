@@ -1,13 +1,14 @@
 package com.conduit.application.user;
 
 import com.conduit.application.user.data.*;
-import com.conduit.domain.user.UserEntity;
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,8 +20,7 @@ public class UserController {
 
     @PostMapping("/users")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRegisterRequestDTO request) {
-        UserEntity user = userService.createUser(request);
-        return ResponseEntity.ok(new UserResponseDTO(user, null));
+        return ResponseEntity.ok(userService.createUser(request));
     }
 
     @PostMapping("/users/login")
@@ -30,7 +30,7 @@ public class UserController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<UserResponseDTO> getUser(HttpServletRequest request, @AuthenticationPrincipal User user) {
+    public ResponseEntity<UserResponseDTO> getUser(HttpServletRequest request, @AuthenticationPrincipal @Nullable UserDetails user) {
         //get token from header
         String authHeader = request.getHeader("Authorization");
         String token = (authHeader != null && authHeader.startsWith("Bearer ")) ? authHeader.substring(7) : null;

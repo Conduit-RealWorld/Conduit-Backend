@@ -85,7 +85,7 @@ public class ArticleService {
     }
 
     public SingleArticleDTO getArticle(String slug, String username) {
-        String title = SlugUtil.toSlug(slug);
+        String title = SlugUtil.fromSlug(slug);
         if(!articleMapper.exists(title)) {
             throw new ArticleNotFoundException(title);
         }
@@ -124,7 +124,7 @@ public class ArticleService {
         if(!articleMapper.exists(title)) {
             throw new ArticleNotFoundException(slug);
         }
-        ArticleEntity articleEntity = articleMapper.getArticleByTitle(slug);
+        ArticleEntity articleEntity = articleMapper.getArticleByTitle(title);
         UserEntity userEntity = userMapper.findByUsername(username);
         if(!favoriteArticleMapper.ifFavorited(userEntity.getId(), articleEntity.getArticleId())) {
             favoriteArticleMapper.favorite(userEntity.getId(), articleEntity.getArticleId());
@@ -140,7 +140,7 @@ public class ArticleService {
         if(!articleMapper.exists(title)) {
             throw new ArticleNotFoundException(slug);
         }
-        ArticleEntity articleEntity = articleMapper.getArticleByTitle(slug);
+        ArticleEntity articleEntity = articleMapper.getArticleByTitle(title);
         UserEntity userEntity = userMapper.findByUsername(username);
         favoriteArticleMapper.unfavorite(userEntity.getId(), articleEntity.getArticleId());
         UserProfileResponseDTO authorProfile = profileService.getProfile(userMapper.findByUserId(articleEntity.getAuthorId()).getUsername(), username);
