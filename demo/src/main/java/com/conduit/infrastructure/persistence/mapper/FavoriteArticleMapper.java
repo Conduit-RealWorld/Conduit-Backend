@@ -17,4 +17,7 @@ public interface FavoriteArticleMapper {
 
     @Delete("DELETE FROM favorite_article WHERE user_id = #{userId} AND article_id = #{articleId}")
     void unfavorite(@Param("userId") UUID userId, @Param("articleId") UUID articleId);
+
+    @Delete("DELETE FROM favorite_article WHERE article_id = #{articleId}")
+    void deleteByArticleId(@Param("articleId") UUID articleId);
 }

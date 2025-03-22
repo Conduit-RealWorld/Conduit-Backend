@@ -1,16 +1,13 @@
 package com.conduit.infrastructure.persistence.mapper;
 
 import com.conduit.domain.article.ArticleEntity;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.util.UUID;
 
 @Mapper
 public interface ArticleMapper {
-    @Insert("INSERT INTO article (article_id, author, title, description, content, created_at, updated_at) " +
+    @Insert("INSERT INTO article (article_id, author_id, title, description, content, created_at, updated_at) " +
             "VALUES (#{articleId}, #{authorId}, #{title}, #{description}, #{content}, #{createdAt}, #{createdAt})")
     void createArticle(ArticleEntity article);
 
@@ -27,4 +24,6 @@ public interface ArticleMapper {
             "WHERE article_id = #{articleId}")
     void updateArticle(ArticleEntity article);
 
+    @Delete("DELETE FROM article WHERE article_id = #{articleId}")
+    void deleteArticleById(UUID articleId);
 }

@@ -22,11 +22,8 @@ import java.util.ArrayList;
 @JsonRootName("article")
 public class SingleArticleDTO {
     private String slug;
-    @NotNull(message = "Title cannot be null")
     private String title;
-    @NotNull(message = "Description cannot be null")
     private String description;
-    @NotNull(message = "Body cannot be null")
     private String body;
     private ArrayList<String> tagList;
     private Timestamp createdAt;

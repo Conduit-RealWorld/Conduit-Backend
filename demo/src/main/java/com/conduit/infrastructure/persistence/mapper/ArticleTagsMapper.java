@@ -1,9 +1,6 @@
 package com.conduit.infrastructure.persistence.mapper;
 
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,4 +17,7 @@ public interface ArticleTagsMapper {
     // Get all article IDs associated with a tag
     @Select("SELECT article_id FROM article_tags WHERE tag_id = #{tagId}")
     List<UUID> getAllArticlesByTag(@Param("tagId") UUID tagId);
+
+    @Delete("DELETE FROM article_tags WHERE article_id = #{articleId}")
+    void deleteByArticleId(@Param("articleId") UUID articleId);
 }

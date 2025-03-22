@@ -16,14 +16,14 @@ public class CommentEntity {
     private UUID commentId;
     private UUID articleId;
     private UUID userId;
-    private String comment;
-    private Timestamp created_at;
+    private String commentBody;
+    private Timestamp createdAt;
 
     public CommentEntity(UUID articleId, UUID userId, String comment) {
         this.commentId = UUID.randomUUID();
         this.articleId = articleId;
         this.userId = userId;
-        this.comment = comment;
-        this.created_at = new Timestamp(System.currentTimeMillis());
+        this.commentBody = comment;
+        this.createdAt = new Timestamp(System.currentTimeMillis());
     }
 }

@@ -16,23 +16,22 @@ import com.conduit.domain.user.UserEntity;
 import com.conduit.infrastructure.persistence.mapper.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ArticleService {
-
     private final UserMapper userMapper;
     private final ArticleMapper articleMapper;
     private final TagMapper tagMapper;
     private final FavoriteArticleMapper favoriteArticleMapper;
     private final ArticleTagsMapper articleTagsMapper;
     private final CommentMapper commentMapper;
+    private final ArticleSlugMapper articleSlugMapper;
     private final ProfileService profileService;
 
-    public void createArticleTags(SingleArticleDTO article, UUID articleId) {
+    private void createArticleTags(SingleArticleDTO article, UUID articleId) {
         article.getTagList().forEach(
                 s -> {
                     if(!tagMapper.exists(s)) {
@@ -46,25 +45,39 @@ public class ArticleService {
         );
     }
 
-    public void updateTitle(SingleArticleDTO article, ArticleEntity articleEntity) {
-        if(!article.getTitle().isEmpty()) {
-            if(articleMapper.exists(article.getTitle()) && !article.getTitle().equals(articleEntity.getTitle())) {
+    private void updateArticleFields(SingleArticleDTO article, ArticleEntity articleEntity) {
+        if (article.getTitle() != null && !article.getTitle().isBlank()) {
+            if (articleMapper.exists(article.getTitle()) && !article.getTitle().equals(articleEntity.getTitle())) {
                 throw new AlreadyExistsException(article.getTitle());
             }
             articleEntity.setTitle(article.getTitle());
+            articleSlugMapper.updateSlug(articleEntity.getArticleId(), SlugUtil.toSlug(article.getTitle()));
         }
-    }
 
-    public void updateDescription(SingleArticleDTO article, ArticleEntity articleEntity) {
-        if(!article.getDescription().isEmpty()) {
+        if (article.getDescription() != null && !article.getDescription().isBlank()) {
             articleEntity.setDescription(article.getDescription());
         }
-    }
 
-    public void updateContent(SingleArticleDTO article, ArticleEntity articleEntity) {
-        if(!article.getBody().isEmpty()) {
+        if (article.getBody() != null && !article.getBody().isBlank()) {
             articleEntity.setContent(article.getBody());
         }
+    }
+
+    private ArticleEntity getArticleEntityBySlug(String slug) {
+        UUID articleId = articleSlugMapper.getArticleIdByArticleSlug(slug);
+        if(articleId == null) {
+            throw new ArticleNotFoundException(SlugUtil.fromSlug(slug));
+        }
+        return articleMapper.getArticleById(articleId);
+    }
+
+    private SingleArticleDTO buildSingleArticleDTO(ArticleEntity articleEntity, UserProfileResponseDTO authorProfile, UUID currentUserId) {
+        return new SingleArticleDTO(
+                articleEntity,
+                authorProfile,
+                favoriteArticleMapper.ifFavorited(currentUserId, articleEntity.getArticleId()),
+                favoriteArticleMapper.favoriteCount(articleEntity.getArticleId())
+        );
     }
 
     public SingleArticleDTO createArticle(SingleArticleDTO article, String authorName) {
@@ -76,99 +89,79 @@ public class ArticleService {
         UUID articleId = UUID.randomUUID();
         ArticleEntity articleEntity = new ArticleEntity(article, articleId, authorEntity.getId());
         articleMapper.createArticle(articleEntity);
+        articleSlugMapper.create(articleId, SlugUtil.toSlug(article.getTitle()));
 
         UserProfileResponseDTO authorProfile = profileService.getProfile(authorName, authorName);
         article.init(articleMapper.getArticleById(articleId), authorProfile);
         createArticleTags(article, articleId);
-
         return article;
     }
 
     public SingleArticleDTO getArticle(String slug, String username) {
-        String title = SlugUtil.fromSlug(slug);
-        if(!articleMapper.exists(title)) {
-            throw new ArticleNotFoundException(title);
-        }
-        ArticleEntity articleEntity = articleMapper.getArticleByTitle(title);
+        ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         String authorName = userMapper.findByUserId(articleEntity.getAuthorId()).getUsername();
         UserProfileResponseDTO authorProfile = profileService.getProfile(authorName, username);
-        return new SingleArticleDTO(articleEntity, authorProfile,
-                favoriteArticleMapper.ifFavorited(articleEntity.getAuthorId(), articleEntity.getArticleId()),
-                favoriteArticleMapper.favoriteCount(articleEntity.getArticleId()));
+
+        return buildSingleArticleDTO(articleEntity, authorProfile, userMapper.findByUsername(username).getId());
     }
 
     public SingleArticleDTO updateArticle(String slug, SingleArticleDTO article, String authorName) {
-        String oldTitle = SlugUtil.fromSlug(slug);
+        ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         UUID userId = userMapper.findByUsername(authorName).getId();
-        if(!articleMapper.exists(slug)) {
-            throw new ArticleNotFoundException(oldTitle);
-        }
-        ArticleEntity articleEntity = articleMapper.getArticleByTitle(oldTitle);
         if(!userId.equals(articleEntity.getAuthorId())) {
-            throw new UnauthorizedArticleModificationException(oldTitle);
+            throw new UnauthorizedArticleModificationException(SlugUtil.fromSlug(slug));
         }
 
-        updateTitle(article, articleEntity);
-        updateDescription(article, articleEntity);
-        updateContent(article, articleEntity);
+        updateArticleFields(article, articleEntity);
         articleMapper.updateArticle(articleEntity);
-
         UserProfileResponseDTO authorProfile = profileService.getProfile(authorName, authorName);
-        return new SingleArticleDTO(articleEntity, authorProfile,
-                favoriteArticleMapper.ifFavorited(articleEntity.getAuthorId(), articleEntity.getArticleId()),
-                favoriteArticleMapper.favoriteCount(articleEntity.getArticleId()));
+        return buildSingleArticleDTO(articleEntity, authorProfile, userId);
     }
 
     public SingleArticleDTO favoriteArticle(String slug, String username) {
-        String title = SlugUtil.fromSlug(slug);
-        if(!articleMapper.exists(title)) {
-            throw new ArticleNotFoundException(slug);
-        }
-        ArticleEntity articleEntity = articleMapper.getArticleByTitle(title);
+        ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         UserEntity userEntity = userMapper.findByUsername(username);
         if(!favoriteArticleMapper.ifFavorited(userEntity.getId(), articleEntity.getArticleId())) {
             favoriteArticleMapper.favorite(userEntity.getId(), articleEntity.getArticleId());
         }
         UserProfileResponseDTO authorProfile = profileService.getProfile(userMapper.findByUserId(articleEntity.getAuthorId()).getUsername(), username);
-        return new SingleArticleDTO(articleEntity, authorProfile,
-                favoriteArticleMapper.ifFavorited(articleEntity.getAuthorId(), articleEntity.getArticleId()),
-                favoriteArticleMapper.favoriteCount(articleEntity.getArticleId()));
+        return buildSingleArticleDTO(articleEntity, authorProfile, userEntity.getId());
     }
 
     public SingleArticleDTO unfavoriteArticle(String slug, String username) {
-        String title = SlugUtil.fromSlug(slug);
-        if(!articleMapper.exists(title)) {
-            throw new ArticleNotFoundException(slug);
-        }
-        ArticleEntity articleEntity = articleMapper.getArticleByTitle(title);
+        ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         UserEntity userEntity = userMapper.findByUsername(username);
         favoriteArticleMapper.unfavorite(userEntity.getId(), articleEntity.getArticleId());
         UserProfileResponseDTO authorProfile = profileService.getProfile(userMapper.findByUserId(articleEntity.getAuthorId()).getUsername(), username);
-        return new SingleArticleDTO(articleEntity, authorProfile,
-                favoriteArticleMapper.ifFavorited(articleEntity.getAuthorId(), articleEntity.getArticleId()),
-                favoriteArticleMapper.favoriteCount(articleEntity.getArticleId()));
+        return buildSingleArticleDTO(articleEntity, authorProfile, userEntity.getId());
+    }
+
+    public void deleteArticle(String slug, String username) {
+        ArticleEntity articleEntity = getArticleEntityBySlug(slug);
+        UserEntity userEntity = userMapper.findByUsername(username);
+        if(!userEntity.getId().equals(articleEntity.getAuthorId())) {
+            throw new UnauthorizedArticleModificationException(SlugUtil.fromSlug(slug));
+        }
+        articleTagsMapper.deleteByArticleId(articleEntity.getArticleId());
+        favoriteArticleMapper.deleteByArticleId(articleEntity.getArticleId());
+        commentMapper.deleteByArticleId(articleEntity.getArticleId());
+        articleSlugMapper.deleteByArticleId(articleEntity.getArticleId());
+        articleMapper.deleteArticleById(articleEntity.getArticleId());
     }
 
     public SingleComment addComment(String slug, SingleComment singleComment, String username) {
-        String title = SlugUtil.fromSlug(slug);
-        if(!articleMapper.exists(title)) {
-            throw new ArticleNotFoundException(title);
-        }
-        ArticleEntity articleEntity = articleMapper.getArticleByTitle(title);
+        ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         UserEntity userEntity = userMapper.findByUsername(username);
         UserProfileResponseDTO authorProfile = profileService.getProfile(username, username);
-        CommentEntity commentEntity = new CommentEntity(articleEntity.getArticleId(), userEntity.getId(), authorProfile.getUsername());
+        CommentEntity commentEntity = new CommentEntity(articleEntity.getArticleId(), userEntity.getId(), singleComment.getBody());
         commentMapper.create(commentEntity);
         return new SingleComment(commentEntity, authorProfile);
     }
 
     public void deleteComment(String slug, UUID commentId, String username) {
-        String title = SlugUtil.fromSlug(slug);
-        if(!articleMapper.exists(title)) {
-            throw new ArticleNotFoundException(title);
-        }
-        ArticleEntity articleEntity = articleMapper.getArticleByTitle(title);
+        ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         CommentEntity commentEntity = commentMapper.getByCommentId(commentId);
+
         if(!articleEntity.getArticleId().equals(commentEntity.getArticleId()) ||
                 !commentEntity.getUserId().equals(userMapper.findByUsername(username).getId())) {
             throw new UnauthorizedArticleModificationException(commentId.toString());
@@ -177,11 +170,7 @@ public class ArticleService {
     }
 
     public MultipleComments getComments(String slug, String username) {
-        String title = SlugUtil.fromSlug(slug);
-        if(!articleMapper.exists(title)) {
-            throw new ArticleNotFoundException(title);
-        }
-        ArticleEntity articleEntity = articleMapper.getArticleByTitle(title);
+        ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         List<CommentEntity> allComments = commentMapper.getAllCommentsByArticleId(articleEntity.getArticleId());
         MultipleComments multipleComments = new MultipleComments();
         allComments.forEach(

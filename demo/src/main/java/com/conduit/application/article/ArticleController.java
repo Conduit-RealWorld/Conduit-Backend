@@ -51,14 +51,20 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.addComment(slug, singleComment, user.getUsername()));
     }
 
-    @DeleteMapping("/{slug}/{articleId}")
+    @DeleteMapping("/{slug}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable String slug, @PathVariable UUID commentId, @AuthenticationPrincipal User user) {
         articleService.deleteComment(slug, commentId, user.getUsername());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{slug}/comments")
     public ResponseEntity<MultipleComments> getComments(@PathVariable String slug, @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(articleService.getComments(slug, user.getUsername()));
+        return ResponseEntity.ok(articleService.getComments(slug, user != null ? user.getUsername() : null));
+    }
+
+    @DeleteMapping("/{slug}")
+    public ResponseEntity<Void> deleteArticle(@PathVariable String slug, @AuthenticationPrincipal User user) {
+        articleService.deleteArticle(slug, user.getUsername());
+        return ResponseEntity.ok().build();
     }
 }

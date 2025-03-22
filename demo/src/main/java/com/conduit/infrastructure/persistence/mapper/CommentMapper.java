@@ -9,7 +9,7 @@ import java.util.UUID;
 @Mapper
 public interface CommentMapper {
     @Insert("INSERT INTO comment (comment_id, parent_comment_id, article_id, user_id, comment_body, created_at) " +
-            "VALUES (#{comment.commentId}, #{comment.parentId}, #{comment.articleId}, #{comment.userId}, #{comment.comment}, #{comment.createdAt})")
+            "VALUES (#{comment.commentId}, #{comment.parentId}, #{comment.articleId}, #{comment.userId}, #{comment.commentBody}, #{comment.createdAt})")
     void create(@Param("comment") CommentEntity comment);
 
     @Delete("DELETE FROM comment WHERE comment_id = #{commentId}")
@@ -20,4 +20,8 @@ public interface CommentMapper {
 
     @Select("Select * From comment WHERE article_id = #{articleId}")
     List<CommentEntity> getAllCommentsByArticleId(@Param("articleId") UUID articleId);
+
+    @Delete("DELETE FROM comment WHERE article_id = #{articleId}")
+    void deleteByArticleId(@Param("articleId") UUID ArticleId);
+
 }

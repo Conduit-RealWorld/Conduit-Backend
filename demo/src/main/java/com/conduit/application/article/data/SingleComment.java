@@ -23,9 +23,9 @@ public class SingleComment {
 
     public SingleComment(CommentEntity commentEntity, UserProfileResponseDTO author) {
         this.id = commentEntity.getCommentId();
-        this.createdAt = commentEntity.getCreated_at();
-        this.updatedAt = commentEntity.getCreated_at();
-        this.body = commentEntity.getComment();
+        this.createdAt = commentEntity.getCreatedAt();
+        this.updatedAt = commentEntity.getCreatedAt();
+        this.body = commentEntity.getCommentBody();
         this.author = author;
     }
 }

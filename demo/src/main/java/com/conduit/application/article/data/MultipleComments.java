@@ -12,7 +12,7 @@ import java.util.ArrayList;
 @NoArgsConstructor
 @ToString
 public class MultipleComments {
-    private ArrayList<SingleComment> comments;
+    private ArrayList<SingleComment> comments = new ArrayList<>();
     public void addComment(SingleComment comment) {
         this.comments.add(comment);
     }
