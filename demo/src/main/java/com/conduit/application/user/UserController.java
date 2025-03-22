@@ -48,5 +48,4 @@ public class UserController {
         UserResponseDTO response = userService.updateUser(user.getUsername(), token, request);
         return ResponseEntity.ok(response);
     }
-
 }

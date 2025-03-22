@@ -1,7 +1,6 @@
 package com.conduit.domain.profile;
 
 import lombok.*;
-
 import java.util.UUID;
 
 @Getter

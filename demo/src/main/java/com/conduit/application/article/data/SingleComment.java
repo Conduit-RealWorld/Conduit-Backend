@@ -4,7 +4,6 @@ import com.conduit.application.profile.data.UserProfileResponseDTO;
 import com.conduit.domain.article.CommentEntity;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import lombok.*;
-
 import java.sql.Timestamp;
 import java.util.UUID;
 

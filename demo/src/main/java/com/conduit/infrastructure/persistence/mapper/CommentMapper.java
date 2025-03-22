@@ -2,7 +2,6 @@ package com.conduit.infrastructure.persistence.mapper;
 
 import com.conduit.domain.article.CommentEntity;
 import org.apache.ibatis.annotations.*;
-
 import java.util.List;
 import java.util.UUID;
 

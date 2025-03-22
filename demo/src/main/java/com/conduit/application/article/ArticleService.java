@@ -1,5 +1,6 @@
 package com.conduit.application.article;
 
+import com.conduit.application.article.data.MultipleArticlesDTO;
 import com.conduit.application.article.data.MultipleComments;
 import com.conduit.application.article.data.SingleArticleDTO;
 import com.conduit.application.article.data.SingleComment;
@@ -71,12 +72,13 @@ public class ArticleService {
         return articleMapper.getArticleById(articleId);
     }
 
-    private SingleArticleDTO buildSingleArticleDTO(ArticleEntity articleEntity, UserProfileResponseDTO authorProfile, UUID currentUserId) {
+    private SingleArticleDTO buildSingleArticleDTO(ArticleEntity articleEntity, UserProfileResponseDTO authorProfile, UUID currentUserId, boolean withBody) {
         return new SingleArticleDTO(
                 articleEntity,
                 authorProfile,
                 favoriteArticleMapper.ifFavorited(currentUserId, articleEntity.getArticleId()),
-                favoriteArticleMapper.favoriteCount(articleEntity.getArticleId())
+                favoriteArticleMapper.favoriteCount(articleEntity.getArticleId()),
+                withBody
         );
     }
 
@@ -102,7 +104,7 @@ public class ArticleService {
         String authorName = userMapper.findByUserId(articleEntity.getAuthorId()).getUsername();
         UserProfileResponseDTO authorProfile = profileService.getProfile(authorName, username);
 
-        return buildSingleArticleDTO(articleEntity, authorProfile, userMapper.findByUsername(username).getId());
+        return buildSingleArticleDTO(articleEntity, authorProfile, userMapper.findByUsername(username).getId(), true);
     }
 
     public SingleArticleDTO updateArticle(String slug, SingleArticleDTO article, String authorName) {
@@ -115,7 +117,7 @@ public class ArticleService {
         updateArticleFields(article, articleEntity);
         articleMapper.updateArticle(articleEntity);
         UserProfileResponseDTO authorProfile = profileService.getProfile(authorName, authorName);
-        return buildSingleArticleDTO(articleEntity, authorProfile, userId);
+        return buildSingleArticleDTO(articleEntity, authorProfile, userId, true);
     }
 
     public SingleArticleDTO favoriteArticle(String slug, String username) {
@@ -125,7 +127,7 @@ public class ArticleService {
             favoriteArticleMapper.favorite(userEntity.getId(), articleEntity.getArticleId());
         }
         UserProfileResponseDTO authorProfile = profileService.getProfile(userMapper.findByUserId(articleEntity.getAuthorId()).getUsername(), username);
-        return buildSingleArticleDTO(articleEntity, authorProfile, userEntity.getId());
+        return buildSingleArticleDTO(articleEntity, authorProfile, userEntity.getId(), true);
     }
 
     public SingleArticleDTO unfavoriteArticle(String slug, String username) {
@@ -133,7 +135,7 @@ public class ArticleService {
         UserEntity userEntity = userMapper.findByUsername(username);
         favoriteArticleMapper.unfavorite(userEntity.getId(), articleEntity.getArticleId());
         UserProfileResponseDTO authorProfile = profileService.getProfile(userMapper.findByUserId(articleEntity.getAuthorId()).getUsername(), username);
-        return buildSingleArticleDTO(articleEntity, authorProfile, userEntity.getId());
+        return buildSingleArticleDTO(articleEntity, authorProfile, userEntity.getId(), true);
     }
 
     public void deleteArticle(String slug, String username) {
@@ -147,6 +149,21 @@ public class ArticleService {
         commentMapper.deleteByArticleId(articleEntity.getArticleId());
         articleSlugMapper.deleteByArticleId(articleEntity.getArticleId());
         articleMapper.deleteArticleById(articleEntity.getArticleId());
+    }
+
+    public MultipleArticlesDTO listArticles(String tag, String author, String favoriteBy, int limit, int offset, String username) {
+        List<ArticleEntity> articles = articleMapper.findArticles(tag, author, favoriteBy, limit, offset);
+        UUID currentUserId = userMapper.findByUsername(username).getId();
+
+        MultipleArticlesDTO multipleArticlesDTO = new MultipleArticlesDTO();
+        articles.forEach(
+                articleEntity -> {
+                    UserProfileResponseDTO authorProfile = profileService.getProfile(userMapper.findByUserId(articleEntity.getAuthorId()).getUsername(), username);
+                    multipleArticlesDTO.getArticles().addLast(buildSingleArticleDTO(articleEntity, authorProfile, currentUserId, false));
+                }
+        );
+        multipleArticlesDTO.setArticlesCount(articles.size());
+        return multipleArticlesDTO;
     }
 
     public SingleComment addComment(String slug, SingleComment singleComment, String username) {

@@ -25,6 +25,12 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
 
+    private UserEntity getUserByEmail(String email) {
+        UserEntity user = userMapper.findByEmail(email);
+        if (user == null) {throw new UserNotFoundException("User" + email + "not found");}
+        return user;
+    }
+
     public UserResponseDTO createUser(UserRegisterRequestDTO request) {
         UserEntity user = new UserEntity();
         user.setId(UUID.randomUUID());
@@ -40,8 +46,7 @@ public class UserService {
     }
 
     public UserResponseDTO loginUser(String email, String password) {
-        UserEntity user = userMapper.findByEmail(email);
-        if(user == null) {throw new UserNotFoundException("User" + email + "not found");}
+        UserEntity user = getUserByEmail(email);
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getUsername(), password)
         );
@@ -49,14 +54,12 @@ public class UserService {
     }
 
     public UserResponseDTO getUser(String username, String token) {
-        UserEntity user = userMapper.findByUsername(username);
-        if(user == null) {throw new UserNotFoundException("User" + username + "not found");}
+        UserEntity user = getUserByEmail(username);
         return new UserResponseDTO(user, token);
     }
 
     public UserResponseDTO updateUser(String username, String token, UserUpdateRequestDTO request) {
-        UserEntity user = userMapper.findByUsername(username);
-        if(user == null) {throw new UserNotFoundException("User" + username + "not found");}
+        UserEntity user = getUserByEmail(username);
         if(!user.getEmail().equalsIgnoreCase(request.getEmail()) && userMapper.emailExists(request.getEmail()) > 0) {
             throw new RuntimeException("Email already in use");
         }
@@ -66,5 +69,4 @@ public class UserService {
         userMapper.updateUser(user);
         return new UserResponseDTO(user, token);
     }
-
 }

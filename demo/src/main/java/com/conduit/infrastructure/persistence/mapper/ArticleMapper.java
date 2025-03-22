@@ -3,6 +3,7 @@ package com.conduit.infrastructure.persistence.mapper;
 import com.conduit.domain.article.ArticleEntity;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Mapper
@@ -26,4 +27,36 @@ public interface ArticleMapper {
 
     @Delete("DELETE FROM article WHERE article_id = #{articleId}")
     void deleteArticleById(UUID articleId);
+
+    @Select(
+            "<script> "+
+            "SELECT a.* "+
+            "FROM article a "+
+            "LEFT JOIN article_tags at ON a.article_id = at.article_id "+
+            "LEFT JOIN tag t ON t.tag_id = at.tag_id "+
+            "<where> "+
+            "  <if test='tag != null'> "+
+            "    AND t.name = #{tag} "+
+            "  </if> "+
+            "  <if test='author != null'> "+
+            "    AND a.author_id = (SELECT id FROM users WHERE username = #{author}) "+
+            "  </if> "+
+            "  <if test='favorited != null'> "+
+            "    AND a.article_id IN ( "+
+            "      SELECT article_id FROM favorite_article "+
+            "      WHERE user_id = (SELECT id FROM users WHERE username = #{favorited}) "+
+            "    ) "+
+            "  </if> "+
+            "</where> "+
+            "ORDER BY a.created_at DESC "+
+            "LIMIT #{limit} OFFSET #{offset} "+
+            "</script>"
+    )
+    List<ArticleEntity> findArticles(
+            @Param("tag") String tag,
+            @Param("author") String author,
+            @Param("favorited") String favorited,
+            @Param("limit") int limit,
+            @Param("offset") int offset
+    );
 }

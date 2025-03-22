@@ -1,5 +1,6 @@
 package com.conduit.application.article;
 
+import com.conduit.application.article.data.MultipleArticlesDTO;
 import com.conduit.application.article.data.MultipleComments;
 import com.conduit.application.article.data.SingleArticleDTO;
 import com.conduit.application.article.data.SingleComment;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.UUID;
 
 @RestController
@@ -66,5 +66,17 @@ public class ArticleController {
     public ResponseEntity<Void> deleteArticle(@PathVariable String slug, @AuthenticationPrincipal User user) {
         articleService.deleteArticle(slug, user.getUsername());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<MultipleArticlesDTO> listArticles(
+            @RequestParam(value = "tag", required = false) String tag,
+            @RequestParam(value = "author", required = false) String author,
+            @RequestParam(value = "favorited", required = false) String favoritedBy,
+            @RequestParam(value = "limit", required = false, defaultValue = "20") int limit,
+            @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok( articleService.listArticles(tag, author, favoritedBy, limit, offset, user != null ? user.getUsername() : null) );
     }
 }

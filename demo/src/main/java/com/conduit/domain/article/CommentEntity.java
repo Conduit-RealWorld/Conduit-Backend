@@ -1,8 +1,6 @@
 package com.conduit.domain.article;
 
 import lombok.*;
-
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.UUID;
 

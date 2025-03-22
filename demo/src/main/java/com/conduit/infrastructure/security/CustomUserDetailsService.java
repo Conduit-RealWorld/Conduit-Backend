@@ -1,6 +1,5 @@
 package com.conduit.infrastructure.security;
 
-
 import com.conduit.domain.user.UserEntity;
 import com.conduit.infrastructure.persistence.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-
 import java.util.UUID;
 
 @Component

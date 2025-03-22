@@ -60,5 +60,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance(); // 明文存储密码
     }
-
 }

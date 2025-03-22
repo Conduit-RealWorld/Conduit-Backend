@@ -13,10 +13,8 @@ import org.springframework.web.bind.annotation.*;
 public class ProfileController {
     private final ProfileService profileService;
 
-    //todo : if username not exist
     @GetMapping("/celeb_{username}")
     public ResponseEntity<UserProfileResponseDTO> getProfile(@PathVariable String username, @AuthenticationPrincipal User user) {
-        System.out.println(username);
         UserProfileResponseDTO response = profileService.getProfile(username, user.getUsername());
         return ResponseEntity.ok(response);
     }
@@ -32,5 +30,4 @@ public class ProfileController {
         UserProfileResponseDTO response = profileService.unfollowUser(username, user.getUsername());
         return ResponseEntity.ok(response);
     }
-
 }

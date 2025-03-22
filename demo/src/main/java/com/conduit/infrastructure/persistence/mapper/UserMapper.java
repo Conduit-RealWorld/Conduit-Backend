@@ -2,7 +2,6 @@ package com.conduit.infrastructure.persistence.mapper;
 
 import com.conduit.domain.user.UserEntity;
 import org.apache.ibatis.annotations.*;
-
 import java.util.UUID;
 
 @Mapper

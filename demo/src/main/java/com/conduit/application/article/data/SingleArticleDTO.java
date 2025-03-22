@@ -3,15 +3,11 @@ package com.conduit.application.article.data;
 import com.conduit.application.profile.data.UserProfileResponseDTO;
 import com.conduit.common.util.SlugUtil;
 import com.conduit.domain.article.ArticleEntity;
-import com.conduit.domain.user.UserEntity;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
@@ -32,12 +28,15 @@ public class SingleArticleDTO {
     private int favoritesCount;
     private UserProfileResponseDTO author;
 
-    public SingleArticleDTO(ArticleEntity articleEntity, UserProfileResponseDTO author, boolean favorited, int favoritesCount) {
+    public SingleArticleDTO(ArticleEntity articleEntity, UserProfileResponseDTO author, boolean favorited, int favoritesCount, boolean withBody) {
         String title = articleEntity.getTitle();
         String slug = SlugUtil.toSlug(title);
         this.setTitle(title);
         this.setSlug(slug);
         this.setDescription(articleEntity.getDescription());
+        if(withBody) {
+            this.body = articleEntity.getContent();
+        }
         this.setCreatedAt(articleEntity.getCreatedAt());
         this.setUpdatedAt(articleEntity.getUpdatedAt());
         this.setFavorited(favorited);

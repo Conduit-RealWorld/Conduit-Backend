@@ -3,7 +3,6 @@ package com.conduit.infrastructure.persistence.handler;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedTypes;
-
 import java.sql.*;
 import java.util.UUID;
 
@@ -33,4 +32,3 @@ public class UUIDTypeHandler extends BaseTypeHandler<UUID> {
         return uuidStr == null ? null : UUID.fromString(uuidStr);
     }
 }
-
