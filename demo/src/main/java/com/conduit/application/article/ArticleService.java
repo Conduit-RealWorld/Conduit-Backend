@@ -17,6 +17,8 @@ import com.conduit.domain.user.UserEntity;
 import com.conduit.infrastructure.persistence.mapper.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -82,6 +84,7 @@ public class ArticleService {
         );
     }
 
+    @Transactional
     public SingleArticleDTO createArticle(SingleArticleDTO article, String authorName) {
         if(articleMapper.exists(article.getTitle())) {
             throw new AlreadyExistsException(article.getTitle());
@@ -99,6 +102,7 @@ public class ArticleService {
         return article;
     }
 
+    @Transactional
     public SingleArticleDTO getArticle(String slug, String username) {
         ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         String authorName = userMapper.findByUserId(articleEntity.getAuthorId()).getUsername();
@@ -107,6 +111,7 @@ public class ArticleService {
         return buildSingleArticleDTO(articleEntity, authorProfile, userMapper.findByUsername(username).getId(), true);
     }
 
+    @Transactional
     public SingleArticleDTO updateArticle(String slug, SingleArticleDTO article, String authorName) {
         ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         UUID userId = userMapper.findByUsername(authorName).getId();
@@ -120,6 +125,7 @@ public class ArticleService {
         return buildSingleArticleDTO(articleEntity, authorProfile, userId, true);
     }
 
+    @Transactional
     public SingleArticleDTO favoriteArticle(String slug, String username) {
         ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         UserEntity userEntity = userMapper.findByUsername(username);
@@ -130,6 +136,7 @@ public class ArticleService {
         return buildSingleArticleDTO(articleEntity, authorProfile, userEntity.getId(), true);
     }
 
+    @Transactional
     public SingleArticleDTO unfavoriteArticle(String slug, String username) {
         ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         UserEntity userEntity = userMapper.findByUsername(username);
@@ -138,6 +145,7 @@ public class ArticleService {
         return buildSingleArticleDTO(articleEntity, authorProfile, userEntity.getId(), true);
     }
 
+    @Transactional
     public void deleteArticle(String slug, String username) {
         ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         UserEntity userEntity = userMapper.findByUsername(username);
@@ -151,6 +159,7 @@ public class ArticleService {
         articleMapper.deleteArticleById(articleEntity.getArticleId());
     }
 
+    @Transactional
     public MultipleArticlesDTO listArticles(String tag, String author, String favoriteBy, int limit, int offset, String username) {
         List<ArticleEntity> articles = articleMapper.findArticles(tag, author, favoriteBy, limit, offset);
         UUID currentUserId = userMapper.findByUsername(username).getId();
@@ -166,6 +175,7 @@ public class ArticleService {
         return multipleArticlesDTO;
     }
 
+    @Transactional
     public SingleComment addComment(String slug, SingleComment singleComment, String username) {
         ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         UserEntity userEntity = userMapper.findByUsername(username);
@@ -175,6 +185,7 @@ public class ArticleService {
         return new SingleComment(commentEntity, authorProfile);
     }
 
+    @Transactional
     public void deleteComment(String slug, UUID commentId, String username) {
         ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         CommentEntity commentEntity = commentMapper.getByCommentId(commentId);
@@ -186,6 +197,7 @@ public class ArticleService {
         commentMapper.deleteByCommentId(commentId);
     }
 
+    @Transactional
     public MultipleComments getComments(String slug, String username) {
         ArticleEntity articleEntity = getArticleEntityBySlug(slug);
         List<CommentEntity> allComments = commentMapper.getAllCommentsByArticleId(articleEntity.getArticleId());

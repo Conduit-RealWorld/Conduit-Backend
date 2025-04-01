@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -31,6 +32,7 @@ public class UserService {
         return user;
     }
 
+    @Transactional
     public UserResponseDTO createUser(UserRegisterRequestDTO request) {
         UserEntity user = new UserEntity();
         user.setId(UUID.randomUUID());
@@ -45,6 +47,7 @@ public class UserService {
         return new UserResponseDTO(user, null);
     }
 
+    @Transactional
     public UserResponseDTO loginUser(String email, String password) {
         UserEntity user = getUserByEmail(email);
         Authentication authentication = authenticationManager.authenticate(
@@ -53,11 +56,13 @@ public class UserService {
         return new UserResponseDTO(user, jwtUtil.generateToken(user.getId()));
     }
 
+    @Transactional
     public UserResponseDTO getUser(String username, String token) {
         UserEntity user = getUserByEmail(username);
         return new UserResponseDTO(user, token);
     }
 
+    @Transactional
     public UserResponseDTO updateUser(String username, String token, UserUpdateRequestDTO request) {
         UserEntity user = getUserByEmail(username);
         if(!user.getEmail().equalsIgnoreCase(request.getEmail()) && userMapper.emailExists(request.getEmail()) > 0) {

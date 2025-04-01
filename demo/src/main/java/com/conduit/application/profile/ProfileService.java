@@ -8,6 +8,7 @@ import com.conduit.infrastructure.persistence.mapper.FollowsMapper;
 import com.conduit.infrastructure.persistence.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +16,7 @@ public class ProfileService {
     private final UserMapper userMapper;
     private final FollowsMapper followsMapper;
 
+    @Transactional
     public UserProfileResponseDTO getProfile(String username, String currentUser) {
         if (currentUser == null) {currentUser = username; }
         UserEntity user = userMapper.findByUsername(username);
@@ -26,6 +28,7 @@ public class ProfileService {
         return new UserProfileResponseDTO(user, following);
     }
 
+    @Transactional
     public UserProfileResponseDTO followUser(String followee, String follower) {
         if(follower.equals(followee)) throw new FollowNotAllowedException(follower);
         UserEntity followerUser = userMapper.findByUsername(follower);
@@ -37,6 +40,7 @@ public class ProfileService {
         return new UserProfileResponseDTO(followeeUser, true);
     }
 
+    @Transactional
     public UserProfileResponseDTO unfollowUser(String followee, String follower) {
         if(follower.equals(followee)) throw new FollowNotAllowedException(follower);
         UserEntity followerUser = userMapper.findByUsername(follower);

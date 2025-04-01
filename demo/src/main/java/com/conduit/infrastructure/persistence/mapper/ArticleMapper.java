@@ -30,7 +30,7 @@ public interface ArticleMapper {
 
     @Select(
             "<script> "+
-            "SELECT a.* "+
+            "SELECT DISTINCT a.* "+
             "FROM article a "+
             "LEFT JOIN article_tags at ON a.article_id = at.article_id "+
             "LEFT JOIN tag t ON t.tag_id = at.tag_id "+
